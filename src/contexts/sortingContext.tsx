@@ -1,8 +1,8 @@
 import { createContext, useContext, useState } from 'react';
 
 interface SortingContextType {
-  sortedValues: number[];
-  setSortedValues: React.Dispatch<React.SetStateAction<number[]>>;
+  numberArray: number[];
+  setNumberArray: React.Dispatch<React.SetStateAction<number[]>>;
   isSorting: boolean;
   setIsSorting: React.Dispatch<React.SetStateAction<boolean>>;
   delay: number;
@@ -28,11 +28,8 @@ export const useSortingContext = () => {
   return context;
 };
 
-export const SortingProvider: React.FC<SortingProviderProps> = ({
-  children,
-  values,
-}) => {
-  const [sortedValues, setSortedValues] = useState<number[]>(values);
+export const SortingProvider: React.FC<SortingProviderProps> = ({ children, values }) => {
+  const [numberArray, setNumberArray] = useState<number[]>(values);
   const [withDelay, setWithDelay] = useState<boolean>(true);
   const [delay, setDelay] = useState<number>(1);
   const [isSorting, setIsSorting] = useState<boolean>(false);
@@ -40,8 +37,8 @@ export const SortingProvider: React.FC<SortingProviderProps> = ({
   return (
     <SortingContext.Provider
       value={{
-        sortedValues,
-        setSortedValues,
+        numberArray,
+        setNumberArray,
         isSorting,
         setIsSorting,
         delay,
