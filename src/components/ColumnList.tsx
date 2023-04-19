@@ -9,7 +9,8 @@ interface ColumnListProps {
 
 const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
   // Access the sorting context object
-  const { numberArray, setNumberArray, isSorting, setIsSorting, delay, setDelay, withDelay, setWithDelay } = useSortingContext();
+  const { numberArray, setNumberArray, isSorting, setIsSorting, delay, setDelay, withDelay, setWithDelay } =
+    useSortingContext();
 
   /**
    * Asynchronously sorts an array of numbers using the Bubble Sort algorithm,
@@ -17,11 +18,7 @@ const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
    */
   const bubbleSort = async () => {
     setIsSorting(true);
-
     const n = numberArray.length;
-
-    console.log(numberArray);
-
     let numberOfAccesses = 0;
 
     for (let i = 0; i < n; i++) {
