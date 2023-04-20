@@ -1,16 +1,31 @@
+'use client';
+
 import { useSortingContext } from '@/contexts/sortingContext';
+import { generateColumns } from '@/lib/generateColumns';
 import { shuffle, sleep } from '@/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Column from './Column';
 
-interface ColumnListProps {
-  values: number[];
-}
+const ColumnList = () => {
+  const {
+    numberArray,
+    setNumberArray,
+    arrayLength,
+    setArrayLength,
+    isSorting,
+    setIsSorting,
+    delay,
+    setDelay,
+    withDelay,
+    setWithDelay,
+  } = useSortingContext();
 
-const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
-  // Access the sorting context object
-  const { numberArray, setNumberArray, isSorting, setIsSorting, delay, setDelay, withDelay, setWithDelay } =
-    useSortingContext();
+  const inputArrayLengthRef = useRef(null);
+  const [updatedArrayLength, setUpdatedArrayLength] = useState<number>(arrayLength);
+
+  const handleArrayLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdatedArrayLength(Number(e.target.value));
+  };
 
   /**
    * Asynchronously sorts an array of numbers using the Bubble Sort algorithm,
@@ -19,12 +34,10 @@ const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
   const bubbleSort = async () => {
     setIsSorting(true);
     const n = numberArray.length;
-    let numberOfAccesses = 0;
 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n - i - 1; j++) {
         if (numberArray[j] > numberArray[j + 1]) {
-          numberOfAccesses++;
           const temp = numberArray[j];
           numberArray[j] = numberArray[j + 1];
           numberArray[j + 1] = temp;
@@ -138,117 +151,253 @@ const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
    * @returns The sorted array.
    */
   const selectionSort = async () => {
-    const array = [...numberArray];
-    console.log(array);
-    const n = array.length;
+    setIsSorting(true);
+
+    const n = numberArray.length;
 
     for (let i = 0; i < n - 1; i++) {
       let minIndex = i;
 
       for (let j = i + 1; j < n; j++) {
-        if (array[j] < array[minIndex]) {
+        if (numberArray[j] < numberArray[minIndex]) {
           minIndex = j;
         }
       }
 
       if (minIndex !== i) {
-        [array[i], array[minIndex]] = [array[minIndex], array[i]];
+        [numberArray[i], numberArray[minIndex]] = [numberArray[minIndex], numberArray[i]];
       }
+
+      if (withDelay) await sleep(delay);
+
+      setNumberArray([...numberArray]);
     }
-    return array;
+
+    setIsSorting(false);
   };
 
   /**
-   * Recursively sorts an array of numbers using the Merge Sort algorithm.
-   * @param arr - The array of numbers to be sorted.
-   * @returns The sorted array.
+   * Asynchronously merges two sorted halves of an array into a single sorted array.
+   *
+   * @param array The array to be merged.
+   * @param left The starting index of the first sorted half.
+   * @param middle The ending index of the first sorted half.
+   * @param right The ending index of the second sorted half.
    */
-  function mergeSort(array: number[]): number[] {
-    if (array.length <= 1) {
-      return array;
+  const merge = async (array: number[], left: number, middle: number, right: number) => {
+    const n1 = middle - left + 1;
+    const n2 = right - middle;
+
+    const leftArray: number[] = new Array(n1);
+    const rightArray: number[] = new Array(n2);
+
+    for (let i = 0; i < n1; i++) {
+      leftArray[i] = array[left + i];
     }
 
-    const middle = Math.floor(array.length / 2);
-    const left = array.slice(0, middle);
-    const right = array.slice(middle);
+    for (let i = 0; i < n2; i++) {
+      rightArray[i] = array[middle + 1 + i];
+    }
 
-    return merge(mergeSort(left), mergeSort(right));
-  }
+    let i = 0;
+    let j = 0;
+    let k = left;
+
+    while (i < n1 && j < n2) {
+      if (leftArray[i] <= rightArray[j]) {
+        array[k] = leftArray[i];
+        i++;
+      } else {
+        array[k] = rightArray[j];
+        j++;
+      }
+
+      if (withDelay) await sleep(delay);
+
+      setNumberArray([...array]);
+      k++;
+    }
+
+    while (i < n1) {
+      array[k] = leftArray[i];
+
+      if (withDelay) await sleep(delay);
+
+      setNumberArray([...array]);
+      i++;
+      k++;
+    }
+
+    while (j < n2) {
+      array[k] = rightArray[j];
+
+      if (withDelay) await sleep(delay);
+
+      setNumberArray([...array]);
+      j++;
+      k++;
+    }
+  };
 
   /**
-   * Merges two sorted arrays into a single sorted array.
-   * @param left - The first sorted array.
-   * @param right - The second sorted array.
-   * @returns The merged sorted array.
+   * Asynchronously sorts an array of numbers using the Merge Sort algorithm,
+   * updating the sorted values and the sorting state throughout the process.
+   *
+   * @param array The array to be sorted.
+   * @param left The starting index of the sort. Defaults to 0.
+   * @param right The ending index of the sort. Defaults to array.length - 1.
    */
-  function merge(left: number[], right: number[]) {
-    let result = [];
-    let leftIndex = 0;
-    let rightIndex = 0;
+  const mergeSort = async (array: number[], left: number = 0, right: number = array.length - 1) => {
+    if (left < right) {
+      const middle = Math.floor((left + right) / 2);
 
-    while (leftIndex < left.length && rightIndex < right.length) {
-      if (left[leftIndex] < right[rightIndex]) {
-        result.push(left[leftIndex]);
-        leftIndex++;
-      } else {
-        result.push(right[rightIndex]);
-        rightIndex++;
-      }
+      await mergeSort(array, left, middle);
+      await mergeSort(array, middle + 1, right);
+      await merge(array, left, middle, right);
+    }
+  };
+
+  /**
+   * A wrapper function that sets the sorting state, updates the sorted values,
+   * and resets the sorting state once the sorting is complete.
+   */
+  const handleMergeSort = async () => {
+    setIsSorting(true);
+
+    await mergeSort([...numberArray], 0, numberArray.length - 1);
+
+    setIsSorting(false);
+  };
+
+  /**
+   * Asynchronously creates a max heap for a given array and index.
+   * @param array - The array to create the max heap for.
+   * @param n - The size of the array.
+   * @param i - The index of the current element.
+   */
+  const heapify = async (array: number[], n: number, i: number) => {
+    let largest = i;
+    const left = 2 * i + 1;
+    const right = 2 * i + 2;
+
+    if (left < n && array[left] > array[largest]) {
+      largest = left;
     }
 
-    return result.concat(left.slice(leftIndex)).concat(right.slice(rightIndex));
-  }
+    if (right < n && array[right] > array[largest]) {
+      largest = right;
+    }
+
+    if (largest !== i) {
+      [array[i], array[largest]] = [array[largest], array[i]];
+
+      if (withDelay) await sleep(delay);
+
+      setNumberArray([...array]);
+
+      await heapify(array, n, largest);
+    }
+  };
+
+  /**
+   * Asynchronously sorts an array of numbers using the Heap Sort algorithm,
+   * updating the sorted values and the sorting state throughout the process.
+   */
+  const heapSort = async () => {
+    setIsSorting(true);
+    const n = numberArray.length;
+
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      await heapify(numberArray, n, i);
+    }
+
+    for (let i = n - 1; i > 0; i--) {
+      [numberArray[0], numberArray[i]] = [numberArray[i], numberArray[0]];
+
+      if (withDelay) await sleep(delay);
+
+      setNumberArray([...numberArray]);
+
+      await heapify(numberArray, i, 0);
+    }
+
+    setIsSorting(false);
+  };
+
+  /**
+   * A wrapper function that updates the sorted values
+   * and resets the sorting state once the sorting is complete.
+   */
+  const handleHeapSort = async () => {
+    await heapSort();
+  };
 
   /**
    * Resets the sorted values to a new, shuffled order.
    */
   const handleReset = () => {
-    setNumberArray([...shuffle(values)]);
+    setNumberArray([...shuffle(numberArray)]);
   };
 
   return (
-    <div className='column-list-container'>
-      {/* <div className='column-list'>
-        {numberArray.map((value, index) => (
-          <Column key={index} value={value} index={index} />
-        ))}
+    <>
+      <div
+        className='column-list-container'
+        style={{
+          border: '1px solid red',
+          margin: '5rem',
+          height: '50rem',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+        }}
+      >
+        {numberArray.map((value, index) => {
+          return <Column key={index} value={value} />;
+        })}
       </div>
-      <div className='button-container'>
-        <button disabled={isSorting} onClick={handleQuickSort}>
-          Quick sort
-        </button>
+
+      <div>
         <button disabled={isSorting} onClick={bubbleSort}>
           Bubble Sort
         </button>
         <button disabled={isSorting} onClick={insertionSort}>
           Insertion Sort
         </button>
+        <button disabled={isSorting} onClick={handleQuickSort}>
+          Quick Sort
+        </button>
+        <button disabled={isSorting} onClick={selectionSort}>
+          Selection Sort
+        </button>
+        <button disabled={isSorting} onClick={handleMergeSort}>
+          Merge Sort
+        </button>
+        <button disabled={isSorting} onClick={handleHeapSort}>
+          Heap Sort
+        </button>
 
         <button disabled={isSorting} onClick={handleReset}>
           Reset
         </button>
+
+        <input
+          ref={inputArrayLengthRef}
+          type='number'
+          id='arrayLength'
+          name='arrayLength'
+          onChange={handleArrayLengthChange}
+        />
+        <button
+          onClick={() => {
+            setNumberArray(shuffle(generateColumns(updatedArrayLength)));
+            setArrayLength(updatedArrayLength);
+          }}
+        >
+          Update
+        </button>
       </div>
-      <div className='timer-container'>
-        <div>
-          <p>delay</p>
-          <input
-            disabled={isSorting}
-            checked={withDelay}
-            onChange={(e) => setWithDelay(e.target.checked)}
-            type='checkbox'
-          />
-        </div>
-        <div>
-          <p>ms</p>
-          <input
-            disabled={isSorting}
-            value={delay}
-            onChange={(e) => setDelay(parseInt(e.target.value))}
-            type='number'
-          />
-        </div>
-      </div> */}
-    </div>
+    </>
   );
 };
 

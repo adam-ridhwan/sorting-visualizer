@@ -1,8 +1,12 @@
+import { generateColumns } from '@/lib/generateColumns';
+import { shuffle } from '@/lib/utils';
 import { createContext, useContext, useState } from 'react';
 
 interface SortingContextType {
   numberArray: number[];
   setNumberArray: React.Dispatch<React.SetStateAction<number[]>>;
+  arrayLength: number;
+  setArrayLength: React.Dispatch<React.SetStateAction<number>>;
   isSorting: boolean;
   setIsSorting: React.Dispatch<React.SetStateAction<boolean>>;
   delay: number;
@@ -15,7 +19,6 @@ export const SortingContext = createContext<SortingContextType | null>(null);
 
 interface SortingProviderProps {
   children: React.ReactNode;
-  values: number[];
 }
 
 export const useSortingContext = () => {
@@ -28,10 +31,13 @@ export const useSortingContext = () => {
   return context;
 };
 
-export const SortingProvider: React.FC<SortingProviderProps> = ({ children, values }) => {
+export const SortingProvider: React.FC<SortingProviderProps> = ({ children }) => {
+  const values = shuffle(generateColumns(50));
+
   const [numberArray, setNumberArray] = useState<number[]>(values);
+  const [arrayLength, setArrayLength] = useState<number>(numberArray.length);
   const [withDelay, setWithDelay] = useState<boolean>(true);
-  const [delay, setDelay] = useState<number>(1);
+  const [delay, setDelay] = useState<number>(10);
   const [isSorting, setIsSorting] = useState<boolean>(false);
 
   return (
@@ -39,6 +45,8 @@ export const SortingProvider: React.FC<SortingProviderProps> = ({ children, valu
       value={{
         numberArray,
         setNumberArray,
+        arrayLength,
+        setArrayLength,
         isSorting,
         setIsSorting,
         delay,
