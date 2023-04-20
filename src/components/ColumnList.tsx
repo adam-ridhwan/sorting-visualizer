@@ -339,6 +339,33 @@ const ColumnList = () => {
     setNumberArray([...shuffle(numberArray)]);
   };
 
+  const buttons = [
+    {
+      label: 'Bubble Sort',
+      onClick: bubbleSort,
+    },
+    {
+      label: 'Insertion Sort',
+      onClick: insertionSort,
+    },
+    {
+      label: 'Quick Sort',
+      onClick: handleQuickSort,
+    },
+    {
+      label: 'Selection Sort',
+      onClick: selectionSort,
+    },
+    {
+      label: 'Merge Sort',
+      onClick: handleMergeSort,
+    },
+    {
+      label: 'Heap Sort',
+      onClick: handleHeapSort,
+    },
+  ];
+
   return (
     <>
       <div
@@ -357,25 +384,12 @@ const ColumnList = () => {
         })}
       </div>
 
-      <div>
-        <button disabled={isSorting} onClick={bubbleSort}>
-          Bubble Sort
-        </button>
-        <button disabled={isSorting} onClick={insertionSort}>
-          Insertion Sort
-        </button>
-        <button disabled={isSorting} onClick={handleQuickSort}>
-          Quick Sort
-        </button>
-        <button disabled={isSorting} onClick={selectionSort}>
-          Selection Sort
-        </button>
-        <button disabled={isSorting} onClick={handleMergeSort}>
-          Merge Sort
-        </button>
-        <button disabled={isSorting} onClick={handleHeapSort}>
-          Heap Sort
-        </button>
+      <div className='actions-container'>
+        {buttons.map(({ label, onClick }, index) => (
+          <button key={index} disabled={isSorting} onClick={onClick}>
+            {label}
+          </button>
+        ))}
 
         <button disabled={isSorting} onClick={handleReset}>
           Reset

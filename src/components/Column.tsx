@@ -11,10 +11,6 @@ const Column: React.FC<ColumnProps> = ({ value }) => {
   const { arrayLength } = useSortingContext();
   const [height, setHeight] = useState<number>(0);
 
-  useEffect(() => {
-    console.log(arrayLength);
-  }, [arrayLength]);
-
   const style: CSSProperties = {
     height: `${(height / arrayLength) * 50}rem`,
     width: '100%',
