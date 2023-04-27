@@ -395,21 +395,24 @@ const ColumnList = () => {
           Reset
         </button>
 
-        <input
-          ref={inputArrayLengthRef}
-          type='number'
-          id='arrayLength'
-          name='arrayLength'
-          onChange={handleArrayLengthChange}
-        />
-        <button
-          onClick={() => {
-            setNumberArray(shuffle(generateColumns(updatedArrayLength)));
-            setArrayLength(updatedArrayLength);
-          }}
-        >
-          Update
-        </button>
+        <div>
+          <input
+            ref={inputArrayLengthRef}
+            type='number'
+            id='arrayLength'
+            name='arrayLength'
+            onChange={handleArrayLengthChange}
+          />
+          <button
+            disabled={isSorting}
+            onClick={() => {
+              setNumberArray(shuffle(generateColumns(updatedArrayLength)));
+              setArrayLength(updatedArrayLength);
+            }}
+          >
+            Update
+          </button>
+        </div>
       </div>
     </>
   );
